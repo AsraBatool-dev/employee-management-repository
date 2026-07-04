@@ -1,23 +1,42 @@
+"""
+Employee Management System
+A Flask-based CRUD application for managing employee records.
+Author: Asra Batool
+Database: SQLite3
+"""
+
 from flask import Flask, render_template_string, request, redirect
-import mysql.connector
+import sqlite3
 
 app = Flask(__name__)
 
-# Database Connection - Password 1234 hai tera
 def get_db():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="1234",
-        database="asra_portfolio"
-    )
+    """Establish database connection with SQLite3"""
+    conn = sqlite3.connect('employees.db')
+    conn.row_factory = sqlite3.Row
+    return conn
 
-# HTML + CSS - Yehi Tera Frontend Hai
+def init_db():
+    """Initialize database and create table if not exists"""
+    conn = get_db()
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS employees (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            department TEXT NOT NULL,
+            salary REAL NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()
 HTML = '''
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Asra's Employee Dashboard</title>
+    <title>Employee Management System</title>
     <meta charset="UTF-8">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -97,8 +116,8 @@ HTML = '''
 </head>
 <body>
     <div class="container">
-        <h1>🚀 Asra's Employee Management System</h1>
-        <p class="subtitle">Full Stack Project | Flask + MySQL + HTML/CSS</p>
+        <h1>Employee Management System</h1>
+        <p class="subtitle">Full Stack CRUD Application | python flask + SQLite3</p>
 
         <h2>➕ Add New Employee</h2>
         <form method="POST" action="/add">
@@ -136,13 +155,13 @@ HTML = '''
         {% else %}
         <div class="empty">
             <h3>No employees yet!</h3>
-            <p>Add your first employee using the form above 👆</p>
+            <p>Add your first employee using the form above </p>
         </div>
         {% endif %}
 
         <div class="footer">
-            <strong>Built by Asra</strong> | Full Stack Developer |
-            Ready for Interview 💪
+            Employee Management System | python Flask + SQLite3
+            
         </div>
     </div>
 </body>
@@ -164,7 +183,7 @@ def index():
 def add():
     db = get_db()
     cursor = db.cursor()
-    sql = "INSERT INTO employees (name, email, department, salary) VALUES (%s, %s, %s, %s)"
+    sql = "INSERT INTO employees (name, email, department, salary) VALUES (?, ?, ?, ?)"
     val = (request.form['name'], request.form['email'], request.form['department'], request.form['salary'])
     cursor.execute(sql, val)
     db.commit()
@@ -176,7 +195,7 @@ def add():
 def delete(id):
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("DELETE FROM employees WHERE id = %s", (id,))
+    cursor.execute("DELETE FROM employees WHERE id = ?", (id,))
     db.commit()
     cursor.close()
     db.close()
@@ -184,9 +203,9 @@ def delete(id):
 
 if __name__ == '__main__':
     print("\n" + "="*50)
-    print("🔥 ASRA'S PORTFOLIO PROJECT IS RUNNING! 🔥")
+    print("Employee Management System is running!")
     print("="*50)
     print("Open your browser and go to:")
-    print("👉 http://localhost:5000 👈")
+    print("Server running at: http://localhost:5000 ")
     print("="*50 + "\n")
     app.run(debug=True)
